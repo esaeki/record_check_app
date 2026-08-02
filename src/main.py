@@ -11,10 +11,8 @@ from typing import List, Optional, Set, Dict
 import pdfplumber
 import requests
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from google.cloud import secretmanager
 from pydantic import BaseModel, Field
 
 # ログ設定
@@ -30,60 +28,42 @@ SETAGAYA_SOKUHOU_URL = "https://www.city.setagaya.lg.jp/02030/29172.html"
 
 
 # ==========================================
-# 0. 機密情報ロード処理 (Secret Manager / .env)
+# 0. 機密情報ロード処理
+# Cloud RunではSecret Managerを環境変数として利用
 # ==========================================
 
-def load_app_secrets(secret_id: str = "record-check-app", project_id: str = None) -> dict:
+def load_app_secrets() -> dict:
     """
-    ローカルの .env、または GCP Secret Manager の 'record-check-app' から
-    環境変数・APIキーを安全に取得する関数
+    ローカル:
+        .env → os.environ
+
+    Cloud Run:
+        Secret Manager → 環境変数 → os.environ
     """
-    load_dotenv()
-
-    secrets = {
-        "GEMINI_API_KEY": os.getenv("GEMINI_API_KEY", ""),
-        "DISCORD_WEBHOOK_URL": os.getenv("DISCORD_WEBHOOK_URL", ""),
-        "GEMINI_MODEL": os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
-    }
-
-    # すべてローカルで揃っている場合は Secret Manager へのアクセスをスキップ
-    if secrets["GEMINI_API_KEY"] and secrets["DISCORD_WEBHOOK_URL"]:
-        return secrets
-
-    # GCP プロジェクト ID の取得（環境変数になければ既定のプロジェクトIDを使用）
-    if not project_id:
-        project_id = os.getenv("GCP_PROJECT_ID", "814563271178")
 
     try:
-        logger.info(f"Secret Manager ({secret_id}) から設定情報をロード中...")
-        client = secretmanager.SecretManagerServiceClient()
-        name = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
-        response = client.access_secret_version(request={"name": name})
-        secret_payload = response.payload.data.decode("UTF-8").strip()
+        from dotenv import load_dotenv
+        load_dotenv()
+    except Exception:
+        pass
 
-        # JSON形式としてパースを試みる
-        try:
-            secret_dict = json.loads(secret_payload)
-            for k, v in secret_dict.items():
-                if not secrets.get(k):
-                    secrets[k] = str(v)
-        except json.JSONDecodeError:
-            # .env 形式 (KEY=VALUE) としてパース
-            for line in secret_payload.splitlines():
-                if "=" in line and not line.startswith("#"):
-                    k, v = line.split("=", 1)
-                    k, v = k.strip(), v.strip()
-                    if not secrets.get(k):
-                        secrets[k] = v
-
-    except Exception as e:
-        logger.warning(f"Secret Manager ({secret_id}) からの取得をスキップ/失敗しました: {e}")
-
-    return secrets
+    return {
+        "GEMINI_API_KEY": os.environ.get(
+            "GEMINI_API_KEY",
+            ""
+        ),
+        "DISCORD_WEBHOOK_URL": os.environ.get(
+            "DISCORD_WEBHOOK_URL",
+            ""
+        ),
+        "GEMINI_MODEL": os.environ.get(
+            "GEMINI_MODEL",
+            "gemini-2.0-flash"
+        ),
+    }
 
 
-# 起動時に一括ロード
-SECRETS = load_app_secrets("record-check-app")
+SECRETS = load_app_secrets()
 
 
 # ==========================================
