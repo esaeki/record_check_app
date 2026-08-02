@@ -3,7 +3,7 @@ from pathlib import Path
 import streamlit as st
 
 # main.py から構築済みのクラスや設定をインポート
-from main import (
+from src.main import (
     SECRETS,
     SETAGAYA_SOKUHOU_URL,
     DiscordNotifier,
