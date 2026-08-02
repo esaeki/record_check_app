@@ -1,0 +1,8 @@
+google-genai
+requests
+beautifulsoup4
+pdfplumber
+pydantic
+python-dotenv
+google-cloud-secret-manager
+streamlit

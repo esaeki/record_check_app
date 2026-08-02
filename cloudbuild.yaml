@@ -1,0 +1,20 @@
+steps:
+  # 1. Python 環境の設定と依存ライブラリのインストール
+  - name: 'python:3.11-slim'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install flake8
+
+  # 2. 構文・インポートエラーの自動チェック (flake8)
+  - name: 'python:3.11-slim'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        python -m flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
+
+timeout: '600s'
