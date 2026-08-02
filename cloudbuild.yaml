@@ -1,4 +1,5 @@
 steps:
+  # 1. Pythonコードのチェック (flake8)
   - name: 'python:3.11-slim'
     entrypoint: 'bash'
     args:
@@ -7,6 +8,14 @@ steps:
         pip install flake8
         python -m flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
 
-# ログ出力オプションを定義
+  # 2. Docker イメージのビルド
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/record-check-app:latest', '.']
+
+# 3. ビルドしたイメージを Artifact Registry (gcr.io) に保存
+images:
+  - 'gcr.io/$PROJECT_ID/record-check-app:latest'
+
+# ログ設定
 options:
   logging: CLOUD_LOGGING_ONLY
