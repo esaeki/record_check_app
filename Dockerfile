@@ -1,18 +1,15 @@
-# Python 3.11 の軽量イメージを使用
 FROM python:3.11-slim
 
-# 作業ディレクトリの設定
 WORKDIR /app
 
-# 依存パッケージのインストール
+# 依存関係のインストール
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# アプリケーションコードのコピー
-COPY . .
+# プロジェクト全体を明示的にコピー
+COPY . /app
 
-# Streamlit 用のポート（8501）を開放
 EXPOSE 8501
 
-# Streamlit アプリの起動コマンド
-CMD ["streamlit", "run", "src/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# WORKDIRが /app なので、/app/src/app.py を指すように指定
+CMD ["streamlit", "run", "src/app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.enableCORS=false", "--server.headless=true"]
