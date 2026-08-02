@@ -1,19 +1,15 @@
 FROM python:3.11-slim
 
-# 作業ディレクトリを /app に指定
 WORKDIR /app
 
-# 依存関係のインストール
+# 依存ライブラリのインストール
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# プロジェクト全体をコピー
+# 全ファイルを /app にコピー
 COPY . .
-
-# 作業ディレクトリを src に移動
-WORKDIR /app/src
 
 EXPOSE 8501
 
-# src の中にいる状態で app.py を起動
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.enableCORS=false", "--server.headless=true"]
+# Streamlitの起動コマンド（直下・src配下の両方を検索できるようにPythonモジュール形式で起動、または直下のパス調整）
+CMD ["streamlit", "run", "src/app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.enableCORS=false", "--server.headless=true"]
