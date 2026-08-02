@@ -35,10 +35,10 @@ SETAGAYA_SOKUHOU_URL = "https://www.city.setagaya.lg.jp/02030/29172.html"
 def load_app_secrets() -> dict:
     """
     ローカル:
-        .env → os.environ
+        .env を読み込み
 
     Cloud Run:
-        Secret Manager → 環境変数 → os.environ
+        Secret Manager → 環境変数
     """
 
     try:
@@ -47,20 +47,23 @@ def load_app_secrets() -> dict:
     except Exception:
         pass
 
-    return {
-        "GEMINI_API_KEY": os.environ.get(
-            "GEMINI_API_KEY",
-            ""
-        ),
-        "DISCORD_WEBHOOK_URL": os.environ.get(
-            "DISCORD_WEBHOOK_URL",
-            ""
-        ),
-        "GEMINI_MODEL": os.environ.get(
+    secrets = {
+        "GEMINI_API_KEY": os.getenv("GEMINI_API_KEY"),
+        "DISCORD_WEBHOOK_URL": os.getenv("DISCORD_WEBHOOK_URL"),
+        "GEMINI_MODEL": os.getenv(
             "GEMINI_MODEL",
             "gemini-2.0-flash"
         ),
     }
+
+    logger.info(
+        "Secret status: GEMINI_API_KEY=%s, DISCORD_WEBHOOK_URL=%s, MODEL=%s",
+        "SET" if secrets["GEMINI_API_KEY"] else "NOT_SET",
+        "SET" if secrets["DISCORD_WEBHOOK_URL"] else "NOT_SET",
+        secrets["GEMINI_MODEL"]
+    )
+
+    return secrets
 
 
 SECRETS = load_app_secrets()
